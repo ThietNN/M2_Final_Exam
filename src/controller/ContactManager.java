@@ -176,7 +176,6 @@ public class ContactManager {
 
     public void removeContact(){
         Scanner scanner = new Scanner(System.in);
-        CheckValidate checkValidate = new CheckValidate();
         boolean checkExistence;
         String choice;
         do {
@@ -211,7 +210,6 @@ public class ContactManager {
     }
 
     public void searchByPhoneNumber(){
-        CheckValidate checkValidate = new CheckValidate();
         String phoneNumber = checkPhoneNumber();
         boolean existPhone = checkExistenceByPhoneNumber(phoneNumber);
         if (existPhone){
