@@ -1,6 +1,8 @@
 package controller;
 
+import controller.checkvalidate.CheckDOB;
 import controller.checkvalidate.CheckMail;
+import controller.checkvalidate.CheckPhone;
 import controller.checkvalidate.CheckValidate;
 import model.Contact;
 import storage.ContactFile;
@@ -12,9 +14,6 @@ public class ContactManager {
     public ContactFile contactFile = new ContactFile();
     public ArrayList<Contact> contactArrayList = contactFile.readFile("contact_list.txt");
 
-    public ArrayList<Contact> getFile(){
-        return contactArrayList;
-    }
 
     public void showMenu(){
         System.out.println(" --- CHƯƠNG TRÌNH QUẢN LÝ DANH BẠ --- ");
@@ -25,47 +24,64 @@ public class ContactManager {
         System.out.println("4. Xóa");
         System.out.println("5. Tìm kiếm");
         System.out.println("6. Đọc từ file");
-        System.out.println("7. Ghi từ file");
+        System.out.println("7. Ghi file");
     }
+//    public void showContactList(){
+//        System.out.println("Press enter to continue");
+//        for (Contact contact : contactArrayList) {
+//            if (enterToContinue())
+//                System.out.println(contact);
+//            else
+//                break;
+//        }
+//    }
+//    public boolean enterToContinue(){
+//        Scanner scanner = new Scanner(System.in);
+//        String check = scanner.nextLine();
+//        return check.equals("");
+//    }
     public void showContactList(){
-        System.out.println("Press enter to continue");
-        for (int i = 0; contactArrayList.get(i) != null; i++){
-            if (enterToContinue())
-                System.out.println(contactArrayList.get(i));
-            else
-                break;
+        for (Contact contact : contactArrayList){
+            System.out.println(contact);
         }
-    }
-    public boolean enterToContinue(){
-        Scanner scanner = new Scanner(System.in);
-        String check = scanner.nextLine();
-        return check.equals("");
     }
 
     public void createNewContact(){
-        CheckValidate checkValidate = new CheckValidate();
-        String phoneNumber = checkValidate.checkPhoneNumber();
+        Contact contact = new Contact();
+        String phoneNumber = checkPhoneNumber();
         boolean checkExistence = checkExistenceByPhoneNumber(phoneNumber);
         if (checkExistence){
             System.err.println("This phone number is already exist");
             return;
         }
-        Contact contact = new Contact();
+
         contact.setPhoneNumber(phoneNumber);
         setGroup(contact);
         setName(contact);
         setGender(contact);
         setAddress(contact);
         setMail(contact);
+        setDOB(contact);
         contactArrayList.add(contact);
         System.out.println("New contact added successfully");
     }
 
-    public void setPhoneNumber(Contact contact){
+    public String checkPhoneNumber(){
         CheckValidate checkValidate = new CheckValidate();
-        String phoneNumber = checkValidate.checkPhoneNumber();
-        contact.setPhoneNumber(phoneNumber);
+        CheckPhone checkPhone = new CheckPhone();
+        String phoneNumber;
+        while(true) {
+            phoneNumber = checkValidate.checkPhoneNumber();
+            boolean validate = checkPhone.validate(phoneNumber);
+            if (validate) {
+                return phoneNumber;
+            } else {
+                System.out.println("Invalid phone number format");
+            }
+        }
     }
+
+
     public void setGroup(Contact contact){
         CheckValidate checkValidate = new CheckValidate();
         String group = checkValidate.checkGroup();
@@ -86,11 +102,6 @@ public class ContactManager {
         String address = checkValidate.checkAddress();
         contact.setAddress(address);
     }
-    public void setDOB(Contact contact){
-        CheckValidate checkValidate = new CheckValidate();
-        String dob = checkValidate.checkDOB();
-        contact.setDob(dob);
-    }
 
     public void setMail(Contact contact){
         CheckMail checkMail = new CheckMail();
@@ -107,10 +118,26 @@ public class ContactManager {
             }
         }
     }
-    public void editContact(){
+    public void setDOB(Contact contact){
+        CheckDOB checkDOB = new CheckDOB();
         CheckValidate checkValidate = new CheckValidate();
+        while(true) {
+            String dob = checkValidate.checkDOB();
+            boolean validate = checkDOB.validate(dob);
+            if (validate) {
+                contact.setDob(dob);
+                break;
+            }
+            else{
+                System.out.println("Invalid mail format");
+            }
+        }
+    }
+
+    public void editContact(){
         Scanner scanner = new Scanner(System.in);
-        String phoneNumber = checkValidate.checkPhoneNumber();
+        Contact contact;
+        String phoneNumber = checkPhoneNumber();
         boolean checkExistence = checkExistenceByPhoneNumber(phoneNumber);
         if (checkExistence){
             System.out.println("Phone number found. Proceed to edit");
@@ -119,31 +146,19 @@ public class ContactManager {
             return;
         }
         int position = getContactPosition(phoneNumber);
-        Contact contact = getContactByPhoneNumber(phoneNumber);
+        contact = getContactByPhoneNumber(phoneNumber);
         editMenu();
         int choice;
         do {
              choice = scanner.nextInt();
-             switch (choice){
-                 case 1:
-                     setGroup(contact);
-                     break;
-                 case 2:
-                     setName(contact);
-                     break;
-                 case 3:
-                     setGender(contact);
-                     break;
-                 case 4:
-                     setAddress(contact);
-                     break;
-                 case 5:
-                     setDOB(contact);
-                     break;
-                 case 6:
-                     setMail(contact);
-                     break;
-             }
+            switch (choice) {
+                case 1 -> setGroup(contact);
+                case 2 -> setName(contact);
+                case 3 -> setGender(contact);
+                case 4 -> setAddress(contact);
+                case 5 -> setDOB(contact);
+                case 6 -> setMail(contact);
+            }
         }while (choice !=0);
         contactArrayList.set(position,contact);
         System.out.println("Contact edited successfully");
@@ -163,8 +178,9 @@ public class ContactManager {
         Scanner scanner = new Scanner(System.in);
         CheckValidate checkValidate = new CheckValidate();
         boolean checkExistence;
+        String choice;
         do {
-            String phoneNumber = checkValidate.checkPhoneNumber();
+            String phoneNumber = checkPhoneNumber();
             checkExistence = checkExistenceByPhoneNumber(phoneNumber);
             int position = getContactPosition(phoneNumber);
             if (!checkExistence) {
@@ -172,11 +188,11 @@ public class ContactManager {
             }
             else{
                 System.out.println("Phone number found. Enter Y to remove this phone number.");
-                String choice = scanner.nextLine();
+                choice = scanner.nextLine();
                 if (choice.equals("Y")) {
                     contactArrayList.remove(position);
                 }else{
-                    return;
+                    break;
                 }
             }
         }while (!checkExistence);
@@ -196,7 +212,7 @@ public class ContactManager {
 
     public void searchByPhoneNumber(){
         CheckValidate checkValidate = new CheckValidate();
-        String phoneNumber = checkValidate.checkPhoneNumber();
+        String phoneNumber = checkPhoneNumber();
         boolean existPhone = checkExistenceByPhoneNumber(phoneNumber);
         if (existPhone){
             Contact contact = getContactByPhoneNumber(phoneNumber);

@@ -1,8 +1,6 @@
 package controller.checkvalidate;
 
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CheckValidate {
     public String checkPhoneNumber(){
@@ -48,16 +46,20 @@ public class CheckValidate {
         Scanner scanner = new Scanner(System.in);
         String check;
         System.out.println("Enter contacts' gender: ");
+        label:
         while (true){
             check = scanner.nextLine();
-            if (check.equals(""))
-                System.err.println("Please don't leave this field empty. ");
-            else if (check.equals("male"))
-                break;
-            else if (check.equals("female"))
-                break;
-            else
-                System.err.println("Gender can either be 'male' or 'female'");
+            switch (check) {
+                case "":
+                    System.err.println("Please don't leave this field empty. ");
+                    break;
+                case "male":
+                case "female":
+                    break label;
+                default:
+                    System.err.println("Gender can either be 'male' or 'female'");
+                    break;
+            }
         }
         return check;
     }
